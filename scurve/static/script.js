@@ -22,10 +22,10 @@ setInterval(function() {
 
             // update the figure only if it is not being saved:
             $.getJSON("/api?get=saving", function(data) {
-                console.log("Running status: " + isRunning + ", saving status: " + data["value"]);
                 isSaving = data["value"];
+                console.log("Running status: " + isRunning + ", saving status: " + isSaving);
+                if (!isSaving) scurveImage.attr("src", scurveSrcBase+"?"+new Date().getTime());
             });
-            if (!isSaving) scurveImage.attr("src", scurveSrcBase+"?"+new Date().getTime());
         } else {
             runningFlag.text("Idle");
             stopButton.hide();
@@ -34,6 +34,24 @@ setInterval(function() {
 }, 1000);
 
 $(function() {
+
+    // start new scurve:
+    $("#button_start").click(function() {
+        var block = $("#scurve_block").val();
+        var oh = $("#scurve_oh").val();
+        console.log("Sending block " + block + " and OH " + oh);
+        $.getJSON(
+            "/api?action=start",
+            {"block": block, "oh": oh },
+            function(data) {
+                console.log("Starting action response: " + data["status"]);
+                $("#content_new").hide();
+                $("#content_scurve").show();
+            }
+        );
+    });
+
+    // stop ongoing scurve:
     $("#button_stop").click(function() {
         $.getJSON("/api?action=stop", function(data) {
             console.log("Stopping action response: " + data["status"]);

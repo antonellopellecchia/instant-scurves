@@ -244,9 +244,9 @@ def analyze_scurve(oh, lock):
         scurve_df.groupby("vfat").apply(plot_scurve)
        
         saving = True
-        output_file = OUTPUT_DIR / f"Summary_OH{oh}.png"
+        output_file = OUTPUT_DIR / f"summary.png"
         print(f"Saving to {output_file}, running is {running}")
-        scurve_df.to_csv(OUTPUT_DIR / f"scurve_oh{oh}.csv")
+        scurve_df.to_csv(OUTPUT_DIR / f"scurve.csv")
         summary_fig.tight_layout()
         summary_fig.savefig(output_file)
         saving = False
@@ -258,8 +258,8 @@ def analyze_scurve(oh, lock):
         if last_iteration: # move output files away
             write_time = datetime.datetime.now()
             write_timestamp = write_time.strftime("%Y%m%d_%H%M")
-            os.rename(OUTPUT_DIR / f"scurve_oh{oh}.csv", OUTPUT_DIR / f"scurve_oh{oh}_{write_timestamp}.csv")
-            output_file_final = OUTPUT_DIR / f"Summary_OH{oh}_{write_timestamp}.png"
+            os.rename(OUTPUT_DIR / f"scurve.csv", OUTPUT_DIR / f"scurve_{write_timestamp}.csv")
+            output_file_final = OUTPUT_DIR / f"Summary_{write_timestamp}.png"
             os.rename(output_file, output_file_final)
             print(f"Moved {output_file} to {output_file_final}.")
 

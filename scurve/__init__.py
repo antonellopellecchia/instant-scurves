@@ -15,12 +15,6 @@ def create_app(test_config=None):
     @app.route("/result")
     def scurve_result():
 
-        block, oh = request.args.get("block"), request.args.get("oh")
-        vfats = list(range(12))
-
-        # launch first the scurve
-        if not daq.running:
-            daq.launch_scurve(block, oh, vfats)
 
         return render_template("scurve.html", oh=oh)
 
@@ -36,7 +30,14 @@ def create_app(test_config=None):
         if variable:
             return jsonify({"value": daq_status[variable]})
         elif action:
-            if action == "stop":
+            if action == "start":
+                block, oh = request.args.get("block"), request.args.get("oh")
+                vfats = list(range(12))
+                # launch the scurve
+                if not daq.running:
+                    daq.launch_scurve(block, oh, vfats)
+                return jsonify({"status": "ok"})
+            elif action == "stop":
                 daq.stop()
                 return jsonify({"status": "ok"})
  

@@ -1,21 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="container m-5"> 
-        <form method="get" action="/result">
+    <div class="container m-5" id="content_new"> 
+        <form>
             <div class="input-group">
             <div class="row">
                 <div class="col">
-                    <input type="text" name="block" class="form-control" id="block" placeholder="Block (ge21 or me0)">
+                    <input type="text" name="block" class="form-control" id="scurve_block" placeholder="Block (ge21 or me0)">
                 </div>
                 <div class="col">
-                    <input type="text" name="oh" class="form-control" id="oh" placeholder="OptoHybrid number">
+                    <input type="text" name="oh" class="form-control" id="scurve_oh" placeholder="OptoHybrid number">
                 </div>
                 <div class="col">
-                    <input type="submit" value="Start" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" id="button_start">Start</button>
                 </div>
             </div>
             </div>
         </form>
+    </div>
+
+    <div align="center" class="container" id="content_scurve">
+        <img id="scurve_img" class="img-fluid" src="{{ url_for('static', filename='results/summary.png') }}" />
     </div>
 {% endblock %}
