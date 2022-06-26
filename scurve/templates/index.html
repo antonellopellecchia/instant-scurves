@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container"> 
+        <form method="get" action="/result">
+            <div class="input-group">
+            <div class="row">
+                <div class="col">
+                    <input type="text" name="block" class="form-control" id="block" placeholder="Block (ge21 or me0)">
+                </div>
+                <div class="col">
+                    <input type="text" name="oh" class="form-control" id="oh" placeholder="OptoHybrid number">
+                </div>
+                <div class="col">
+                    <input type="submit" value="Start" class="btn btn-primary">
+                </div>
+            </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
