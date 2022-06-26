@@ -1,3 +1,23 @@
+html body {
+    background-color: #563d7c;
+    height: 100%;
+}
+
+#content_new {
+    margin: 1.5em 1.5em;
+    padding: 1.5em 2em;
+    background-color: white;
+    border-radius: .5em;
+    width: auto;
+}
+
+#content_scurve {
+    margin: 1.5em auto;
+    padding: 1.2em;
+    border-radius: .5em;
+    background-color: white;
+}
+
 #scurve_img {
     width: 60%;
 }
