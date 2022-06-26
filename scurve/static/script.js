@@ -7,6 +7,7 @@ setInterval(function() {
      */
     var runningFlag = $("#flag_running");
     var stopButton = $("#button_stop");
+    var newButton = $("#button_new");
 
     var scurveImage = $("#scurve_img");
     var scurveSrcBase = scurveImage.attr("src").split("?")[0];
@@ -28,12 +29,26 @@ setInterval(function() {
             });
         } else {
             runningFlag.text("Idle");
-            stopButton.hide();
+            // if we were running before, hide stop button and show new button:
+            if (stopButton.css("display")!="none") {
+                stopButton.hide();
+                newButton.show();
+            }
         }
     });
 }, 1000);
 
 $(function() {
+   
+    var showResult = function(data) {
+        console.log("Starting action response: " + data["status"]);
+        $("#content_new").hide();
+        $("#content_scurve").show();
+    }
+    // if when the page loads an scurve is running, show the result:
+    $.getJSON("/api?get=running", function(data) {
+        if (data["value"]) showResult(data);
+    });
 
     // start new scurve:
     $("#button_start").click(function() {
@@ -43,11 +58,7 @@ $(function() {
         $.getJSON(
             "/api?action=start",
             {"block": block, "oh": oh },
-            function(data) {
-                console.log("Starting action response: " + data["status"]);
-                $("#content_new").hide();
-                $("#content_scurve").show();
-            }
+            showResult
         );
     });
 
@@ -55,7 +66,15 @@ $(function() {
     $("#button_stop").click(function() {
         $.getJSON("/api?action=stop", function(data) {
             console.log("Stopping action response: " + data["status"]);
+            $("#button_stop").hide();
+            $("#button_new").show();
         });
+    });
+
+    $("#button_new").click(function() {
+        $("#button_new").hide();
+        $("#content_new").show();
+        $("#content_scurve").hide();
     });
 });
 
