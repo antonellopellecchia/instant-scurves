@@ -15,6 +15,9 @@ from scipy.optimize import curve_fit
 # status flags:
 running = False
 saving = False
+stopping = False
+
+daq_threads = list()
 
 OUTPUT_DIR = pathlib.Path("scurve/static/results/")
 NOISE_CHECK_SLEEP = 0.001
@@ -31,6 +34,18 @@ lib_paths = {
 
 scurve_output = list()
 
+def stop():
+    global running, saving, stopping
+
+    stopping = True
+    running = False
+    time.sleep(1)
+    saving = False
+
+    for t in daq_threads: t.join()
+    print("All threads stopped")
+    stopping = False
+
 def launch_scurve(block, oh, vfats):
     global running
 
@@ -41,15 +56,17 @@ def launch_scurve(block, oh, vfats):
 
     # start scan in separate thread
     scurve_thread = threading.Thread(target=run_scurve, args=[block, oh, vfats, scurve_lock])
+    daq_threads.append(scurve_thread)
     scurve_thread.start()
 
     # start analysis in separate thread
     analysis_thread = threading.Thread(target=analyze_scurve, args=[oh, scurve_lock])
+    daq_threads.append(analysis_thread)
     analysis_thread.start()
 
 def run_scurve(block, oh, vfats, lock, dry=True):
 
-    global running
+    global running, stopping
    
     print(f"Starting scurve. Running is {running}")
 
@@ -74,6 +91,9 @@ def run_scurve(block, oh, vfats, lock, dry=True):
                     with lock:
                         scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) )
                     time.sleep(2e-6)
+                    if stopping:
+                        print("Stopping scurve scan.")
+                        return
             time.sleep(10e-3)
         print(f"Finished scurve. Running is {running}")
         running = False
@@ -157,6 +177,9 @@ def run_scurve(block, oh, vfats, lock, dry=True):
             while gempy.readReg("BEFE.GEM.TTC.GENERATOR.CYCLIC_RUNNING"): time.sleep(0.001)
             gempy.writeReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE", 0)
             for vfat in vfats:
+                if stopping:
+                    print("Stopping scurve scan.")
+                    return
                 goodEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.GOOD_EVENTS_COUNT".format(vfat))
                 fireEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.CHANNEL_FIRE_COUNT".format(vfat))
                 scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
@@ -170,7 +193,7 @@ def run_scurve(block, oh, vfats, lock, dry=True):
 
 def analyze_scurve(oh, lock):
 
-    global saving
+    global saving, stopping
 
     last_iteration = False
     print(f"Starting continuous analysis. running is {running}")
@@ -227,6 +250,10 @@ def analyze_scurve(oh, lock):
         summary_fig.tight_layout()
         summary_fig.savefig(output_file)
         saving = False
+
+        if stopping:
+            print("Stopping scurve analysis.")
+            return
 
         if last_iteration: # move output files away
             write_time = datetime.datetime.now()

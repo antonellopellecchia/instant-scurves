@@ -28,11 +28,16 @@ def create_app(test_config=None):
     def api():
         daq_status = {
             "running": daq.running,
-            "saving": daq.saving
+            "saving": daq.saving,
+            "stopping": daq.stopping
         }
         variable = request.args.get("get")
-        return jsonify({
-            "value": daq_status[variable]
-        })
+        action = request.args.get("action")
+        if variable:
+            return jsonify({"value": daq_status[variable]})
+        elif action:
+            if action == "stop":
+                daq.stop()
+                return jsonify({"status": "ok"})
  
     return app
