@@ -8,21 +8,6 @@
     <script>
     window.onload = function() {
         var image = document.getElementById("scurve_img");
-        //function updateImage() {
-        //    // wait until the analysis thread is not writing the image:
-        //    var isSaving = true;
-        //    while (isSaving) {
-        //        setTimeout(function() {
-        //            $.getJSON("/api?get=saving", function(data) {
-        //                console.log("Saving: " + data);
-        //                isSaving = data["value"];
-        //            });
-        //        }, 1000);
-        //    }
-        //    // update the image:
-        //    image.src = image.src.split("?")[0] + "?" + new Date().getTime();
-        //}
-        //setInterval(updateImage, 1000);
         var scurveImage = $("#scurve_img");
         var scurveSrcBase = scurveImage.attr("src").split("?")[0];
         var isSaving = true;
