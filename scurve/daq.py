@@ -129,7 +129,7 @@ def run_scurve(block, oh, vfats, lock, dry=False):
             print ("Link errors.. exiting")
             raise ValueError("{} sync errors in OH {}, VFAT {}".format(sync_errors, oh, vfat))
         
-        gempy.writeReg((fpga_prefix[station]+"VFAT_MASK").format(oh, 0xffffff ^ (1 << vfat) ))
+        gempy.writeReg( (fpga_prefix[block]+"VFAT_MASK").format(oh), 0xffffff ^ (1 << vfat) )
 
         for i in range(128):
             gempy.writeReg("BEFE.GEM.OH.OH{}.GEB.VFAT{}.VFAT_CHANNELS.CHANNEL{}.CALPULSE_ENABLE".format(oh,vfat,i), 0)
@@ -182,7 +182,8 @@ def run_scurve(block, oh, vfats, lock, dry=False):
                     return
                 goodEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.GOOD_EVENTS_COUNT".format(vfat))
                 fireEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.CHANNEL_FIRE_COUNT".format(vfat))
-                with lock: scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
+                with lock:
+                    scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
         
         # disable calpulse
         for vfat in vfats:
@@ -202,7 +203,7 @@ def analyze_scurve(oh, lock):
         if not running: last_iteration = True
 
         df_database = pd.read_csv("/home/gempro/all_vfats.csv", sep=";")
-        df_mapping = pd.read_csv("/home/gempro/vfat_mapping.csv", sep=";")
+        df_mapping = pd.read_csv("/home/gempro/testbeam/july2022/config-dev/vfat_mappings/mapping_ge21.csv", sep=";")
         df_calibration = df_mapping.join(df_database.set_index("chip-id"), on="chip-id")
 
         df_calibration = df_calibration[["oh","vfat","cal-dac-m","cal-dac-b"]].copy().rename(columns={"oh":"oh","vfat":"vfat","cal-dac-m":"slope","cal-dac-b":"intercept"}).reset_index(drop=True)
@@ -218,8 +219,9 @@ def analyze_scurve(oh, lock):
         #cmap_new = mpl.cm.get_cmap("viridis")
         my_norm = mpl.colors.Normalize(vmin=.25, vmax=100, clip=False)
 
-        def plot_scurve(vfat_df):
-            vfat = vfat_df["vfat"].iloc[0]
+        def plot_scurve(df):
+            print(df)
+            vfat = df["vfat"].iloc[0]
             vfat_df = scurve_df[scurve_df["vfat"]==vfat]
             #df_sel=df[sel].copy()
 
@@ -240,7 +242,11 @@ def analyze_scurve(oh, lock):
             summary_axs[vfat].set_xlabel("VFAT channel", fontsize=20)
             summary_axs[vfat].set_ylabel("Calibration charge (fC)", fontsize=20)
            
-        with lock: scurve_df = pd.DataFrame(scurve_output, columns="oh,vfat,ch,charge,events,fired".split(","))
+        with lock:
+            if len(scurve_output)==0:
+                time.sleep(1)
+                continue
+            scurve_df = pd.DataFrame(scurve_output, columns="oh,vfat,ch,charge,events,fired".split(","))
         scurve_df.groupby("vfat").apply(plot_scurve)
        
         saving = True
