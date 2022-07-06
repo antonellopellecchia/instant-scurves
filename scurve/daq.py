@@ -28,8 +28,8 @@ fpga_prefix = {
     "me0": "BEFE.GEM.OH_LINKS.OH{}."
 }
 lib_paths = {
-    "ge21": "/home/gempro/testbeam/spring2022/install-dev/ge21/lib64/",
-    "me0": "/home/gempro/testbeam/spring2022/install-dev/me0/lib64/"
+    "ge21": "/home/gempro/testbeam/july2022/install-dev/ge21/lib64/",
+    "me0": "/home/gempro/testbeam/july2022/install-dev/me0/lib64/"
 }
 
 scurve_output = list()
@@ -64,7 +64,7 @@ def launch_scurve(block, oh, vfats):
     daq_threads.append(analysis_thread)
     analysis_thread.start()
 
-def run_scurve(block, oh, vfats, lock, dry=True):
+def run_scurve(block, oh, vfats, lock, dry=False):
 
     global running, stopping
    
@@ -75,7 +75,7 @@ def run_scurve(block, oh, vfats, lock, dry=True):
    
     # import libraries for correct block
     sys.path.append(lib_paths[block])
-    #import gempy
+    import gempy
 
     if dry:
         # test run, generate random pulses
@@ -182,7 +182,7 @@ def run_scurve(block, oh, vfats, lock, dry=True):
                     return
                 goodEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.GOOD_EVENTS_COUNT".format(vfat))
                 fireEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.CHANNEL_FIRE_COUNT".format(vfat))
-                scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
+                with lock: scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
         
         # disable calpulse
         for vfat in vfats:
