@@ -84,12 +84,12 @@ def run_scurve(block, oh, vfats, lock, dry=False):
             #print("Emulating channel", ch)
             for charge in range(0, 256, 1):
                 for vfat in vfats:
-                    fireEv = 100
-                    responseAnalog = np.random.normal(255 - charge, 2, fireEv) + np.random.normal(0, 5, fireEv)
+                    firedEvents = 100
+                    responseAnalog = np.random.normal(255 - charge, 2, firedEvents) + np.random.normal(0, 5, firedEvents)
                     responseDigital = responseAnalog > threshold
-                    goodEv = responseDigital.sum() # count only events with value 1
+                    calibrationEvents = responseDigital.sum() # count only events with value 1
                     with lock:
-                        scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) )
+                        scurve_output.append( (oh, vfat, ch, charge, firedEvents, calibrationEvents) )
                     time.sleep(2e-6)
                     if stopping:
                         print("Stopping scurve scan.")
@@ -157,7 +157,7 @@ def run_scurve(block, oh, vfats, lock, dry=False):
     
     # start scan 
     for ch in range(128):
-        print("Enabling oh", oh, "vfat", vfat, "channel", ch)
+        print("Enabling oh", oh, "channel", ch)
         
         # enable channel and select for calpulse:
         gempy.writeReg("BEFE.GEM.SLOW_CONTROL.SCA.MANUAL_CONTROL.LINK_ENABLE_MASK", 0x1<<oh)
@@ -180,10 +180,10 @@ def run_scurve(block, oh, vfats, lock, dry=False):
                 if stopping:
                     print("Stopping scurve scan.")
                     return
-                goodEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.GOOD_EVENTS_COUNT".format(vfat))
-                fireEv = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.CHANNEL_FIRE_COUNT".format(vfat))
+                calibrationEvents = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.GOOD_EVENTS_COUNT".format(vfat))
+                firedEvents = gempy.readReg("BEFE.GEM.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT{}.CHANNEL_FIRE_COUNT".format(vfat))
                 with lock:
-                    scurve_output.append( (oh, vfat, ch, charge, fireEv, goodEv) ) 
+                    scurve_output.append( (oh, vfat, ch, charge, calibrationEvents, firedEvents) ) 
         
         # disable calpulse
         for vfat in vfats:
@@ -217,7 +217,7 @@ def analyze_scurve(oh, lock):
         cmap_new = mpl.cm.get_cmap("viridis")
         cmap_new.set_under("w")
         #cmap_new = mpl.cm.get_cmap("viridis")
-        my_norm = mpl.colors.Normalize(vmin=.25, vmax=100, clip=False)
+        my_norm = mpl.colors.Normalize(vmin=.25, vmax=200, clip=False)
 
         def plot_scurve(df):
             print(df)
