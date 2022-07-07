@@ -265,7 +265,7 @@ def analyze_scurve(oh, lock):
             write_time = datetime.datetime.now()
             write_timestamp = write_time.strftime("%Y%m%d_%H%M")
             os.rename(OUTPUT_DIR / f"scurve.csv", OUTPUT_DIR / f"scurve_{write_timestamp}.csv")
-            output_file_final = OUTPUT_DIR / f"Summary_{write_timestamp}.png"
+            output_file_final = OUTPUT_DIR / f"scurve_{write_timestamp}.png"
             os.rename(output_file, output_file_final)
             print(f"Moved {output_file} to {output_file_final}.")
 
