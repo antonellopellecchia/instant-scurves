@@ -33,7 +33,7 @@ def create_app(test_config=None):
             if action == "start":
                 block, oh = request.args.get("block"), request.args.get("oh", type=int)
                 if block == "ge21": vfats = list(range(12))
-                elif block == "me0": vfats = [5,6,7,13,14,22,23]
+                elif block == "me0": vfats = [5,6,7,13,14,15,21,22,23]
                 # launch the scurve
                 if not daq.running:
                     daq.launch_scurve(block, oh, vfats)
